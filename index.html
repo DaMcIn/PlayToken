@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Token Calculator">
     <title>Token Calculator</title>
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -15,15 +18,32 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-font-smoothing: antialiased;
+        }
+        input {
+            -webkit-user-select: text;
+        }
+        input[type="number"],
+        input[type="text"] {
+            font-size: 16px;
+            padding: 10px;
         }
         input:focus {
             outline: none;
             border-color: #d4af37 !important;
             box-shadow: 0 0 10px rgba(212, 175, 55, 0.3) !important;
+            font-size: 16px;
         }
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+        }
+        button {
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+            padding-bottom: calc(env(safe-area-inset-bottom) + 0px);
         }
         @media (max-width: 600px) {
             .setup-grid {
@@ -48,6 +68,7 @@
             const [numBuyins, setNumBuyins] = useState('');
             const [players, setPlayers] = useState([]);
             const [buyinAmount, setBuyinAmount] = useState(10);
+            const [tokenCounts, setTokenCounts] = useState({});
 
             const TOKENS_PER_BUYIN = 500;
             const DOLLAR_PER_TOKEN = buyinAmount / TOKENS_PER_BUYIN;
@@ -90,7 +111,12 @@
                 setPlayers(players.filter(p => p.id !== id));
             };
 
-            const handleTokenClick = (id, value) => {
+            const handleTokenClick = (id, value, color) => {
+                const key = `${id}-${color}`;
+                setTokenCounts(prev => ({
+                    ...prev,
+                    [key]: (prev[key] || 0) + 1
+                }));
                 setPlayers(players.map(p => 
                     p.id === id ? { 
                         ...p, 
@@ -118,6 +144,11 @@
                             tokenHistory: [...(p.tokenHistory || []), totalValue]
                         } : p
                     ));
+                    const key = `${id}-${color}`;
+                    setTokenCounts(prev => ({
+                        ...prev,
+                        [key]: 0
+                    }));
                 }
             };
 
@@ -437,7 +468,7 @@
                                                         gap: '6px',
                                                     }}>
                                                         <button
-                                                            onClick={() => handleTokenClick(player.id, value)}
+                                                            onClick={() => handleTokenClick(player.id, value, color)}
                                                             style={{
                                                                 width: '100%',
                                                                 padding: '14px 8px',
@@ -456,11 +487,19 @@
                                                                 flexDirection: 'column',
                                                                 alignItems: 'center',
                                                                 justifyContent: 'center',
+                                                                WebkitTouchCallout: 'none',
+                                                                WebkitUserSelect: 'none',
                                                             }}
                                                             onMouseDown={(e) => {
                                                                 e.currentTarget.style.transform = 'scale(0.95)';
                                                             }}
                                                             onMouseUp={(e) => {
+                                                                e.currentTarget.style.transform = 'scale(1)';
+                                                            }}
+                                                            onTouchStart={(e) => {
+                                                                e.currentTarget.style.transform = 'scale(0.95)';
+                                                            }}
+                                                            onTouchEnd={(e) => {
                                                                 e.currentTarget.style.transform = 'scale(1)';
                                                             }}
                                                         >
@@ -470,18 +509,19 @@
                                                         <input
                                                             type="number"
                                                             min="0"
-                                                            defaultValue="0"
+                                                            value={tokenCounts[`${player.id}-${color}`] || 0}
                                                             placeholder="0"
                                                             style={{
                                                                 width: '100%',
                                                                 padding: '8px 6px',
-                                                                fontSize: '13px',
+                                                                fontSize: '16px',
                                                                 border: '1px solid #374151',
                                                                 borderRadius: '6px',
                                                                 background: 'rgba(0, 0, 0, 0.3)',
                                                                 color: '#e5e7eb',
                                                                 textAlign: 'center',
                                                                 fontWeight: '600',
+                                                                WebkitAppearance: 'none',
                                                             }}
                                                             onChange={(e) => {
                                                                 const count = parseInt(e.currentTarget.value) || 0;
